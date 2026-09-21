@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Rickov rojstni dan</title>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1b1d3a; --panel:#2b2f5c; --ink:#f4f0e6; --dim:#9aa0c8;
+  --gold:#ffd23f; --red:#e63946; --green:#3ddc84; --blue:#2b5bd8; --orange:#ff8c2b;
+  --border:#0b0c1e;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#1b1d3a; } }
+:root[data-theme="dark"]{ --bg:#1b1d3a; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Press Start 2P","Courier New",monospace; font-size:11px; line-height:1.8;
+  display:flex; align-items:center; justify-content:center; overflow:auto;
+  -webkit-user-select:none; user-select:none; touch-action:none;
+}
+#app{width:100%;max-width:420px;min-height:100dvh;position:relative;display:flex;flex-direction:column;padding:12px max(12px,env(safe-area-inset-left)) calc(18px + env(safe-area-inset-bottom))}
+.screen{display:none;flex:1;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:6px 0}
+.screen.active{display:flex}
+h1{font-size:15px;line-height:1.6;color:var(--gold);text-shadow:3px 3px 0 var(--border)}
+h2{font-size:12px;color:var(--gold)}
+p{max-width:300px;color:var(--ink)}
+.btn{
+  font:inherit; font-size:11px; color:var(--border); background:var(--gold);
+  border:0; padding:14px 18px; cursor:pointer;
+  box-shadow:0 5px 0 #a8850e, inset 0 -3px 0 rgba(0,0,0,.15); image-rendering:pixelated;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #a8850e}
+.btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.btn.quiet{background:var(--panel);color:var(--ink);box-shadow:0 5px 0 var(--border)}
+.btn.quiet:active{box-shadow:0 1px 0 var(--border)}
+.btn.opt{width:100%;text-align:left;background:var(--panel);color:var(--ink);box-shadow:0 4px 0 var(--border);padding:12px 14px;line-height:1.5}
+.btn.opt.ok{background:var(--green);color:var(--border)}
+.btn.opt.bad{background:var(--red);color:var(--ink)}
+.progress{display:flex;gap:10px;justify-content:center}
+.slot{width:36px;height:36px;border:4px solid var(--border);background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--dim)}
+.slot.done{background:var(--green);color:var(--border)}
+.slot.next{border-color:var(--gold);color:var(--gold)}
+canvas{width:288px;height:360px;image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid var(--border);background:#000;max-width:100%;height:auto;aspect-ratio:4/5}
+.hud{font-size:14px;color:var(--gold);min-height:24px}
+.hud.big{font-size:22px}
+.hint{color:var(--dim);font-size:8px;line-height:1.6;max-width:300px}
+#pad{display:none;width:116px;height:116px;position:relative;flex:0 0 auto;margin:8px auto 2px;border:4px solid var(--border);border-radius:50%;background:#171936;box-shadow:inset 0 0 0 6px var(--panel),0 5px 0 var(--border);touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+.game-on #pad{display:block}
+#pad::before,#pad::after{content:"";position:absolute;left:50%;top:50%;background:rgba(255,210,63,.2);pointer-events:none}
+#pad::before{width:76px;height:2px;transform:translate(-50%,-50%)}
+#pad::after{width:2px;height:76px;transform:translate(-50%,-50%)}
+#stick{position:absolute;left:50%;top:50%;width:50px;height:50px;transform:translate(-50%,-50%);border:4px solid var(--border);border-radius:50%;background:var(--gold);box-shadow:0 4px 0 #a8850e;pointer-events:none;transition:transform .06s ease-out}
+#stick::before{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff0a0}
+.joy-label{position:absolute;color:var(--dim);font-size:7px;line-height:1;pointer-events:none}
+.joy-label.up{top:8px;left:50%;transform:translateX(-50%)}
+.joy-label.down{bottom:8px;left:50%;transform:translateX(-50%)}
+.joy-label.left{left:8px;top:50%;transform:translateY(-50%)}
+.joy-label.right{right:8px;top:50%;transform:translateY(-50%)}
+@media (max-width:360px), (max-height:650px){
+  body{align-items:flex-start}
+  #app{padding-top:8px}
+  .screen{gap:5px}
+  h2{font-size:10px}
+  .hud.big{font-size:18px}
+  #c1,#c3{width:min(260px,100%)}
+  #parade .t{font-size:8px;padding:9px 10px}
+  #pad{width:94px;height:94px;margin-top:5px}
+  #pad::before{width:60px}
+  #pad::after{height:60px}
+  #stick{width:42px;height:42px}
+  #stick::before{inset:10px}
+  .joy-label{display:none}
+}
+.quiz{width:100%;display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.q{color:var(--ink);line-height:1.8;padding:8px 0}
+.flash{font-size:10px;min-height:20px}
+.flash.ok{color:var(--green)} .flash.bad{color:var(--red)}
+#confetti{position:absolute;inset:0;pointer-events:none}
+.confetti-bit{position:absolute;width:6px;height:6px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(700px) rotate(360deg);opacity:.2}}
+.chest{width:120px;height:110px;position:relative;margin:6px 0}
+.chest .lid,.chest .box{position:absolute;left:0;width:120px;background:#8b4a1f;border:4px solid var(--border)}
+.chest .lid{top:0;height:40px;border-radius:14px 14px 0 0;transform-origin:bottom;transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+.chest .box{top:40px;height:66px}
+.chest .lock{position:absolute;left:50px;top:36px;width:20px;height:22px;background:var(--gold);border:4px solid var(--border)}
+.chest .glow{position:absolute;left:10px;top:30px;width:100px;height:20px;background:var(--gold);opacity:0;filter:blur(4px);transition:opacity .6s .5s}
+.chest.open .lid{transform:rotateX(120deg)}
+.chest.open .glow{opacity:.9}
+.chest .band{position:absolute;left:0;width:120px;height:8px;background:var(--gold);border-top:3px solid var(--border);border-bottom:3px solid var(--border)}
+.location{background:var(--panel);border:4px solid var(--gold);padding:14px;font-size:11px;line-height:1.9;color:var(--gold)}
+#troll{position:absolute;inset:0;background:rgba(0,0,0,.8);display:none;flex-direction:column;align-items:center;justify-content:flex-end;z-index:20;gap:10px;padding:16px 0 0;overflow:hidden}
+#troll.show{display:flex}
+#troll .box{background:var(--panel);border:4px solid var(--gold);padding:18px;width:280px;text-align:center;position:relative;height:200px;flex:0 0 auto;z-index:2}
+#troll .spacer{flex:1}
+#troll .stroll{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;flex:0 0 auto;z-index:1}
+#troll .stroll img{display:block;width:100%;max-width:360px;max-height:44dvh;object-fit:contain;object-position:bottom;image-rendering:pixelated;filter:drop-shadow(4px 4px 0 var(--border))}
+#troll .stroll .bubble{position:relative;margin-bottom:14px;max-width:300px;background:var(--ink);color:var(--border);border:4px solid var(--border);padding:10px 14px;font-size:10px;line-height:1.8;box-shadow:4px 4px 0 var(--border);text-align:center}
+#troll .stroll .bubble::after{content:"";position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--border);border-bottom:0}
+#troll p{margin-bottom:14px;font-size:10px;line-height:1.8}
+#troll .yes{position:absolute;left:30px;top:110px;background:var(--green);transition:left .12s,top .12s}
+#troll .no{position:absolute;right:30px;top:110px;background:var(--red);color:var(--ink);box-shadow:0 5px 0 #7a1d26}
+#c0{width:320px;height:420px;aspect-ratio:320/420;border:4px solid var(--border);background:#000}
+.tagline{font-size:8px;color:var(--red);letter-spacing:1px;line-height:1.8}
+.blink{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.lights{display:flex;gap:6px;justify-content:center}
+.lights i{width:14px;height:14px;border-radius:50%;background:#3a0a0e;border:3px solid var(--border);box-shadow:inset 0 0 0 2px #000}
+.lights i.on{background:var(--red);box-shadow:0 0 8px var(--red)}
+@media (prefers-reduced-motion:reduce){ .blink{animation:none} }
+.gantry{background:#222;border:4px solid var(--border);padding:14px 10px;display:flex;gap:8px;margin-top:6px}
+.gantry .col{display:flex;flex-direction:column;gap:6px}
+.gantry i{display:block;width:30px;height:30px;border-radius:50%;background:#2a0608;border:3px solid #000}
+.gantry i.on{background:var(--red);box-shadow:0 0 12px var(--red)}
+.tap{width:100%;flex:1;min-height:150px;font-size:16px;background:var(--panel);color:var(--ink);box-shadow:0 6px 0 var(--border)}
+.tap.go{background:var(--green);color:var(--border)}
+.rt{font-size:12px;min-height:22px}
+.pit{position:relative;width:300px;height:300px;background:#3a3a3a;border:4px solid var(--border);margin-top:4px}
+.pit .lane{position:absolute;left:0;right:0;top:0;bottom:0;background:repeating-linear-gradient(90deg,#3a3a3a 0 40px,#454545 40px 80px)}
+.pit .box{position:absolute;left:60px;top:20px;width:180px;height:260px;border:4px solid var(--gold);border-top:0;border-bottom:0}
+.pit .car{position:absolute;left:112px;top:56px;width:76px;height:188px;image-rendering:pixelated}
+.wheel{position:absolute;width:64px;height:64px;white-space:pre;font:inherit;font-size:9px;line-height:1.3;color:var(--ink);background:#222;border:4px solid var(--border);border-radius:8px;box-shadow:0 5px 0 var(--border);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.wheel:active{transform:translateY(3px);box-shadow:0 2px 0 var(--border)}
+.wheel.s1{background:#7a3a10}.wheel.s2{background:#a88a10}.wheel.s3{background:var(--green);color:var(--border)}
+.wheel.fl{left:26px;top:52px}.wheel.fr{right:26px;top:52px}.wheel.rl{left:26px;bottom:52px}.wheel.rr{right:26px;bottom:52px}
+.pit .sign{position:absolute;left:0;right:0;top:120px;text-align:center;font-size:20px;color:var(--gold);text-shadow:3px 3px 0 var(--border);pointer-events:none}
+.pit .sign.red{color:var(--red)}
+#parade{position:absolute;inset:0;background:#0b0f2e;display:none;flex-direction:column;align-items:center;justify-content:flex-start;z-index:30;padding:11dvh 0 0;overflow:hidden}
+#parade.show{display:flex}
+#cP{width:100%;max-width:420px;aspect-ratio:2/1;border-top:4px solid var(--border);border-bottom:4px solid var(--border);background:#3d8f40;flex:0 0 auto}
+#parade .laugh-wrap{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;pointer-events:none;opacity:0;transform:translateY(70px);transition:opacity .45s ease-out,transform .45s ease-out}
+#parade .laugh-wrap.in{opacity:1;transform:none}
+#parade .t{position:relative;margin-bottom:14px;max-width:320px;background:var(--ink);color:var(--border);border:4px solid var(--border);padding:10px 14px;font-size:10px;line-height:1.8;text-align:center;box-shadow:4px 4px 0 var(--border)}
+#parade .t::after{content:"";position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--border);border-bottom:0}
+#parade .laugh{display:block;width:100%;max-width:400px;max-height:58dvh;object-fit:contain;object-position:bottom;image-rendering:pixelated;filter:drop-shadow(4px 4px 0 var(--border))}
+@media (prefers-reduced-motion:reduce){ #parade .laugh-wrap{transition:none} }
+.foot{position:relative;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:0 2px;margin-top:8px;font-size:8px;color:var(--dim)}
+.foot button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;opacity:.5}
+#s-final{position:relative;isolation:isolate;padding-bottom:0;gap:6px}
+#cF{position:absolute;inset:0;width:100%;height:100%;z-index:-1;image-rendering:pixelated;pointer-events:none}
+#s-final h1{margin-top:10px}
+.max{position:relative;width:100%;margin-top:auto;display:flex;flex-direction:column;align-items:center;flex:0 0 auto}
+.max img{display:block;width:100%;max-width:400px;max-height:56dvh;object-fit:contain;object-position:bottom;image-rendering:pixelated;filter:drop-shadow(4px 4px 0 var(--border))}
+.max .bubble{position:relative;margin-bottom:14px;max-width:320px;background:var(--ink);color:var(--border);border:4px solid var(--border);padding:12px 14px;font-size:11px;line-height:1.8;box-shadow:4px 4px 0 var(--border);opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s}
+.max .bubble::after{content:"";position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);width:0;height:0;border:7px solid transparent;border-top-color:var(--border);border-bottom:0}
+.max .bubble.show{opacity:1;transform:none}
+.max .bubble .loc{display:block;margin-top:6px;color:var(--red);font-size:12px}
+.max .bubble .loc.gold{color:#8a6a00}
+@media (prefers-reduced-motion:reduce){ .confetti-bit{animation:none;display:none} .chest .lid{transition:none} .max .bubble{transition:none} }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section class="screen active" id="s-start" style="gap:8px">
+    <div class="tagline blink">★ URADNO OBVESTILO FIA ★</div>
+    <canvas id="c0" width="320" height="420"></canvas>
+    <div class="tagline">GRAND PRIX RICK 28 · DANES · SAMO ENKRAT</div>
+    <div class="lights" id="lights"><i></i><i></i><i></i><i></i><i></i></div>
+    <button class="btn" data-go="hub">LIGHTS OUT – ZAČNI</button>
+    <p class="hint">Reši 5 preizkusov. Na koncu izveš, kje je skrito darilo.</p>
+  </section>
+
+  <section class="screen" id="s-hub">
+    <div style="flex:1"></div>
+    <h2>Tvoj napredek</h2>
+    <div class="progress" id="progress"></div>
+    <p class="hint" id="hub-text"></p>
+    <div class="location" id="hub-rules" style="font-size:9px;line-height:1.9;color:var(--ink);border-color:var(--panel);text-align:left"></div>
+    <div style="flex:1"></div>
+    <button class="btn" id="hub-play"></button>
+    <div style="flex:1"></div>
+  </section>
+
+  <section class="screen" id="s-g0">
+    <h2>3 · Perfect start</h2>
+    <div class="gantry" id="gantry">
+      <div class="col"><i></i><i></i></div><div class="col"><i></i><i></i></div><div class="col"><i></i><i></i></div><div class="col"><i></i><i></i></div><div class="col"><i></i><i></i></div>
+    </div>
+    <div class="rt" id="g0-rt"></div>
+    <button class="btn tap" id="g0-tap">ČAKAJ…</button>
+    <p class="hint">Ko luči ugasnejo, TAKOJ pritisni. Okno: 0–0,25 s. Prezgodaj = jump start.</p>
+  </section>
+
+  <section class="screen" id="s-g4">
+    <h2>4 · Pit stop</h2>
+    <div class="hud big" id="g4-hud">0.00 s</div>
+    <div class="pit" id="pit">
+      <div class="lane"></div><div class="box"></div>
+      <canvas class="car" id="c4" width="38" height="94"></canvas>
+      <button class="wheel fl" data-w="0">FL</button><button class="wheel fr" data-w="1">FR</button>
+      <button class="wheel rl" data-w="2">RL</button><button class="wheel rr" data-w="3">RR</button>
+      <div class="sign" id="g4-sign"></div>
+    </div>
+    <p class="hint">Ko se avto ustavi, vsako kolo pritisni 3× (odvij · zamenjaj · privij). Vsa štiri pod 3,2 s.</p>
+  </section>
+
+  <section class="screen" id="s-g1">
+    <h2>1 · Lovi senco</h2>
+    <div class="hud big" id="g1-hud">0.0 s</div>
+    <canvas id="c1" width="320" height="400"></canvas>
+    <p class="hint">Ostani pod senco 10 sekund. Imaš 40 sekund.</p>
+  </section>
+
+  <section class="screen" id="s-g2">
+    <h2>2 · F1 kviz</h2>
+    <div class="hud" id="g2-hud"></div>
+    <div class="quiz" id="quiz"></div>
+    <div class="flash" id="g2-flash"></div>
+  </section>
+
+  <section class="screen" id="s-g3">
+    <h2>5 · Drži vodstvo</h2>
+    <div class="hud big" id="g3-hud">0.0 s</div>
+    <canvas id="c3" width="320" height="400"></canvas>
+    <p class="hint">◀ ▶ zavijaš, ▲ boost (4 s baterije). Zdrži 15 sekund.</p>
+  </section>
+
+  <section class="screen" id="s-win">
+    <div style="flex:1"></div>
+    <h1>ZMAGA!</h1>
+    <p id="win-text"></p>
+    <div style="flex:1"></div>
+    <button class="btn" data-go="hub">NAPREJ</button>
+    <div style="flex:1"></div>
+  </section>
+
+  <section class="screen" id="s-lose">
+    <div style="flex:1"></div>
+    <h1 style="color:var(--red)">KONEC IGRE</h1>
+    <p id="lose-text"></p>
+    <p class="hint">Vseh pet iger moraš rešiti v enem poskusu. Začni od začetka.</p>
+    <div style="flex:1"></div>
+    <button class="btn" id="lose-btn">OD ZAČETKA</button>
+    <div style="flex:1"></div>
+  </section>
+
+  <section class="screen" id="s-final">
+    <canvas id="cF" width="320" height="480"></canvas>
+    <h1>ČESTITKE!</h1>
+    <button class="btn quiet" id="replay" style="font-size:8px;padding:8px 12px">Igraj ponovno</button>
+    <div class="max" id="max">
+      <div class="bubble b1">Simply lovely.<br>Tvoje darilo te čaka:<span class="loc" id="loc-text"></span></div>
+      <img src="./max.png" alt="Max Verstappen">
+    </div>
+  </section>
+
+  <div id="pad" role="application" aria-label="Joystick za premikanje">
+    <span class="joy-label up">GOR</span>
+    <span class="joy-label down">DOL</span>
+    <span class="joy-label left">LEVO</span>
+    <span class="joy-label right">DESNO</span>
+    <div id="stick"></div>
+  </div>
+  <div id="troll">
+    <div class="spacer"></div>
+    <div class="box">
+      <p>Frustriran?<br>Bi rad preskočil igre?</p>
+      <button class="btn yes" id="troll-yes">JA</button>
+      <button class="btn no" id="troll-no">NE</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="stroll">
+      <div class="bubble">hahahaha<br>še js sm jači luzer</div>
+      <img src="./stroll.png" alt="Lance Stroll">
+    </div>
+  </div>
+  <div id="parade">
+    <canvas id="cP" width="420" height="210"></canvas>
+    <div class="laugh-wrap" id="parade-max">
+      <div class="t">Tu-tu-du-du, Rick zgubava!<br>Tu-tu-du-du Max zmagava!</div>
+      <img class="laugh" src="./max-smeh.png" alt="Max Verstappen">
+    </div>
+  </div>
+  <div id="confetti"></div>
+  <div class="foot">
+    <button id="mute">zvok: ON</button>
+    <button id="music">glasba: ON</button>
+    <button id="reset">reset</button>
+    <button id="skip">skip game</button>
+  </div>
+</div>
+
+<script>
+/* ============ NASTAVITVE ============ */
+const GIFT_LOCATION = "[LOKACIJA DARILA]";   // <- sem vpiši, kje je darilo
+const BG_MUSIC = "./rickov-soundtrack.mp3";   // glasba je priložena v javni mapi igre
+const BG_VOLUME = 0.35;
+const QUIZ = [
+  { q:"Katera je najbolj znana F1 ekipa vseh časov?", opts:["Ferrari","McLaren","Mercedes","Red Bull"], a:0 },
+  { q:"Kateri je Tomasov najljubši voznik?", opts:["Senna","Schumacher","Hamilton","Prost"], a:0 },
+  { q:"Kateri voznik je na poti k Enzu Ferrariju zasilno pristal s helikopterjem na polju in nato prišel na kmetovem kolesu?", opts:["Gilles Villeneuve","Niki Lauda","Nigel Mansell","Jean Alesi"], a:0 },
+  { q:"Kdo je najmlajši voznik, ki je kdaj startal na dirki F1 (pri 17 letih)?", opts:["Max Verstappen","Lando Norris","Charles Leclerc","Kimi Antonelli"], a:0 },
+  { q:"Na kateri dirki je Max Verstappen dosegel svojo prvo zmago v F1?", opts:["VN Španije 2016","VN Monaka 2016","VN Mehike 2017","VN Avstrije 2018"], a:0 },
+];
+/* ==================================== */
+
+const $ = s => document.querySelector(s);
+const ORDER = ["g1","g2","g0","g4","g3"];
+const state = { done:[false,false,false,false,false] };
+try { const s = JSON.parse(localStorage.getItem("rick40")); if (s && s.done && s.done.length===5) state.done = s.done; } catch(e){}
+function save(){ try{ localStorage.setItem("rick40", JSON.stringify(state)); }catch(e){} }
+
+/* ---------- zvok ---------- */
+let muted = false, actx = null;
+function beep(freq=440, dur=0.08, type="square", vol=0.05){
+  if (muted) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = vol;
+    o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+function noise(dur=0.15, vol=0.05, lp=3000){
+  if (muted) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const n = actx.sampleRate*dur, buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0);
+    for (let i=0;i<n;i++) d[i] = (Math.random()*2-1) * (1 - i/n);
+    const src = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+    src.buffer = buf; f.type="lowpass"; f.frequency.value = lp; g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(actx.destination); src.start();
+  }catch(e){}
+}
+function sweep(f0, f1, dur, type="sawtooth", vol=0.05){
+  if (muted) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t+dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur);
+  }catch(e){}
+}
+const sfx = {
+  ok(){ beep(660,.08); setTimeout(()=>beep(880,.12),90); },
+  bad(){ sweep(300,80,.5,"sawtooth",.06); noise(.2,.04,800); },
+  win(){ [523,659,784,1047,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,i>=4?.3:.13,"square",.06),i*120)); },
+  tick(){ beep(1200,.03,"square",.02); },
+  light(){ beep(1050,.12,"square",.06); },                                   // F1 startna luč
+  go(){ beep(1050,.05,"square",.06); setTimeout(()=>sweep(200,900,.7,"sawtooth",.07),60); }, // lights out + pospešek
+  rev(){ sweep(120,700,.6,"sawtooth",.06); },                                // motor
+  gun(){ for (let i=0;i<5;i++) setTimeout(()=>noise(.06,.07,4000), i*40); }, // pnevmatski vijačnik
+  wheelOk(){ beep(900,.06,"square",.05); },
+  crash(){ noise(.35,.09,1200); sweep(180,40,.4,"square",.06); },
+  jump(){ sweep(900,150,.6,"square",.07); noise(.3,.04,600); },
+  horn(){ beep(392,.25,"sawtooth",.06); setTimeout(()=>beep(330,.35,"sawtooth",.06),260); },
+  chest(){ [392,523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.2,"triangle",.07),i*150)); setTimeout(()=>noise(.6,.03,6000),600); },
+};
+/* ---------- glasba v ozadju ---------- */
+const bg = new Audio(BG_MUSIC); bg.loop = true; bg.volume = BG_VOLUME; bg.preload = "auto";
+let musicOn = true, bgAvailable = true;
+bg.addEventListener("error", () => { bgAvailable = false; $("#music").textContent = "glasba: ni na voljo"; });
+function setMusic(on){
+  musicOn = on;
+  if (on){ bg.play().then(()=>{ $("#music").textContent = "glasba: ON"; }).catch(()=>{ musicOn=false; }); }
+  else { bg.pause(); $("#music").textContent = "glasba: OFF"; }
+}
+$("#music").onclick = () => { if (bgAvailable) setMusic(!musicOn); };
+// ob prvem dotiku samodejno zaženi glasbo (brskalniki zahtevajo interakcijo)
+const autoStart = () => { if (bgAvailable && bg.paused && musicOn) setMusic(true); removeEventListener("pointerdown", autoStart); removeEventListener("keydown", autoStart); };
+addEventListener("pointerdown", autoStart); addEventListener("keydown", autoStart);
+$("#mute").onclick = () => { muted = !muted; $("#mute").textContent = "zvok: " + (muted?"OFF":"ON"); bg.muted = muted; };
+$("#reset").onclick = () => { state.done=[false,false,false,false,false]; save(); fails = 0; $("#troll").classList.remove("show"); go("start"); };
+$("#skip").onclick = () => {
+  const cur = document.querySelector(".screen.active").id;
+  const i = ORDER.indexOf(cur.slice(2));
+  if (i < 0) return;
+  if (stopGame) { stopGame(); stopGame = null; }
+  winGame(i, "(preskočeno)");
+};
+$("#replay").onclick = () => { state.done=[false,false,false,false,false]; save(); go("start"); };
+
+/* ---------- zasloni ---------- */
+let stopGame = null;
+let go = function(name){
+  if (stopGame) { stopGame(); stopGame = null; }
+  document.body.classList.remove("game-on"); $("#app").classList.remove("pad-3");
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $("#s-"+name).classList.add("active");
+  if (name==="hub") renderHub();
+  if (name==="g0") startG0();
+  if (name==="g4") startG4();
+  if (name==="g1") startG1();
+  if (name==="g2") startG2();
+  if (name==="g3") { $("#app").classList.add("pad-3"); startG3(); }
+  if (name==="final") showFinal();
+}
+document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { beep(500,.05); go(b.dataset.go); });
+
+function renderHub(){
+  const next = state.done.indexOf(false);
+  const names = ["Lovi senco","F1 kviz","Perfect start","Pit stop","Drži vodstvo"];
+  $("#progress").innerHTML = state.done.map((d,i)=>
+    `<div class="slot ${d?"done":(i===next?"next":"")}">${d?"✓":(i===next?(i+1):"—")}</div>`).join("");
+  if (next === -1) { go("final"); return; }
+  const rules = [
+    "Sonce žge, ti pa hočeš v senco. Senca se premika po zelenici – s puščicami jo lovi in ostani pod njo skupaj 10 s. Imaš 40 s.",
+    "5 vprašanj o F1, 4 možnosti. En napačen odgovor = konec.",
+    "Startne luči se prižgejo ena za drugo. Ko VSE ugasnejo, takoj pritisni – v 0,25 s. Prezgodaj = jump start.",
+    "Avto pripelje v boks. Ko se ustavi, vsako kolo pritisni 3× (FL, FR, RL, RR). Vsa štiri pod 3,2 s. Ne začni, dokler se avto ne ustavi!",
+    "Ti si modra formula spredaj. Z ◀ ▶ blokiraj rdečo, oranžno in zeleno, z ▲ boost (4 s baterije). Zdrži 15 s, nihče ne sme mimo.",
+  ];
+  $("#hub-text").textContent = "Naslednja igra: " + names[next];
+  $("#hub-rules").textContent = rules[next];
+  $("#hub-play").textContent = "IGRAJ " + (next+1);
+  $("#hub-play").onclick = () => { beep(500,.05); go(ORDER[next]); };
+}
+let fails = 0;
+function loseGame(text){
+  if (stopGame) { stopGame(); stopGame = null; }
+  fails++;
+  if (fails === 3){ setTimeout(()=>$("#troll").classList.add("show"), 600); }   // samo ob tretjem porazu
+  if (fails % 5 === 0){ state.done=[false,false,false,false,false]; save(); $("#lose-text").textContent = text; showParade(()=>go("lose")); return; }
+  state.done=[false,false,false,false,false]; save(); sfx.bad(); setTimeout(()=>beep(120,.3,"sawtooth",.06),200);
+  $("#lose-text").textContent = text;
+  go("lose");
+}
+const tYes = $("#troll-yes"), tBox = $("#troll").querySelector(".box");
+function dodge(e){
+  if (e && e.cancelable) e.preventDefault();
+  const maxL = tBox.clientWidth - tYes.offsetWidth - 10, maxT = tBox.clientHeight - tYes.offsetHeight - 10;
+  let nl, nt, tries = 0;
+  do { nl = 10 + Math.random()*(maxL-10); nt = 60 + Math.random()*(maxT-60); tries++; }
+  while (tries < 20 && Math.abs(nl - tYes.offsetLeft) < 60 && Math.abs(nt - tYes.offsetTop) < 40);
+  tYes.style.left = nl+"px"; tYes.style.top = nt+"px";
+  beep(300,.05);
+}
+["mouseover","mouseenter","touchstart","pointerdown","mousedown","click","focus"].forEach(ev => tYes.addEventListener(ev, dodge, {passive:false}));
+$("#troll-no").onclick = () => { $("#troll").classList.remove("show"); sfx.horn(); };
+$("#lose-btn").onclick = () => { beep(500,.05); go(ORDER[0]); };
+function winGame(i, text){
+  state.done[i] = true; save(); sfx.win();
+  $("#win-text").textContent = text;
+  go("win"); confetti();
+}
+function confetti(){
+  const c = $("#confetti"); c.innerHTML = "";
+  const cols = ["#ffd23f","#e63946","#3ddc84","#2b5bd8","#ff8c2b","#f4f0e6"];
+  for (let i=0;i<70;i++){
+    const d = document.createElement("div"); d.className="confetti-bit";
+    d.style.left = Math.random()*100+"%"; d.style.top = (-20-Math.random()*200)+"px";
+    d.style.background = cols[i%cols.length];
+    d.style.animationDuration = (2+Math.random()*2)+"s"; d.style.animationDelay = (Math.random()*.8)+"s";
+    c.appendChild(d);
+  }
+  setTimeout(()=>c.innerHTML="", 5000);
+}
+
+/* ---------- vhod: joystick + tipkovnica ---------- */
+const input = { x:0, y:0 };
+const keys = {};
+addEventListener("keydown", e => { keys[e.key.toLowerCase()] = true; if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase())) e.preventDefault(); });
+addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
+function readInput(){
+  let x = 0, y = 0;
+  if (keys["arrowleft"]||keys["a"]) x -= 1;
+  if (keys["arrowright"]||keys["d"]) x += 1;
+  if (keys["arrowup"]||keys["w"]) y -= 1;
+  if (keys["arrowdown"]||keys["s"]) y += 1;
+  x += pad.x; y += pad.y;
+  const m = Math.hypot(x,y); if (m>1){ x/=m; y/=m; }
+  input.x = x; input.y = y;
+}
+const pad = { x:0, y:0 };
+const joystick = $("#pad"), stick = $("#stick");
+let joystickPointer = null;
+function moveJoystick(e){
+  const r = joystick.getBoundingClientRect(), cx = r.left+r.width/2, cy = r.top+r.height/2;
+  let dx = e.clientX-cx, dy = e.clientY-cy;
+  const max = 32, distance = Math.hypot(dx,dy);
+  if (distance > max){ dx = dx/distance*max; dy = dy/distance*max; }
+  pad.x = dx/max; pad.y = dy/max;
+  stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+function resetJoystick(){
+  joystickPointer = null; pad.x = 0; pad.y = 0;
+  stick.style.transform = "translate(-50%,-50%)";
+}
+joystick.addEventListener("pointerdown", e => {
+  joystickPointer = e.pointerId; joystick.setPointerCapture(e.pointerId);
+  moveJoystick(e); e.preventDefault();
+});
+joystick.addEventListener("pointermove", e => {
+  if (e.pointerId === joystickPointer){ moveJoystick(e); e.preventDefault(); }
+});
+joystick.addEventListener("pointerup", e => { if (e.pointerId === joystickPointer) resetJoystick(); });
+joystick.addEventListener("pointercancel", resetJoystick);
+// tudi drsenje po canvasu premika igralca (če ni joysticka)
+function canvasDrag(canvas, cb){
+  let last = null;
+  canvas.addEventListener("touchstart", e => { last = e.touches[0]; e.preventDefault(); }, {passive:false});
+  canvas.addEventListener("touchmove", e => {
+    const t = e.touches[0]; if (last) cb((t.clientX-last.clientX)*(320/canvas.clientWidth), (t.clientY-last.clientY)*(400/canvas.clientHeight));
+    last = t; e.preventDefault();
+  }, {passive:false});
+  canvas.addEventListener("touchend", () => last = null);
+}
+
+/* ---------- pomožno risanje ---------- */
+function px(ctx, x, y, w, h, c){ ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
+function loop(fn){
+  let last = performance.now(), running = true;
+  function frame(t){ if(!running) return; const dt = Math.min((t-last)/1000, .05); last = t; readInput(); fn(dt); requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  return () => running = false;
+}
+
+/* ============ IGRA 0: Perfect start ============ */
+function startG0(){
+  const cols = document.querySelectorAll("#gantry .col"), tap = $("#g0-tap"), rt = $("#g0-rt");
+  const LIMIT = 250;   // ms
+  let phase = "arming", goAt = 0, timers = [];
+  cols.forEach(c => c.querySelectorAll("i").forEach(i => i.classList.remove("on")));
+  tap.classList.remove("go"); tap.textContent = "ČAKAJ…"; rt.textContent = "";
+  const clear = () => timers.forEach(clearTimeout);
+  stopGame = clear;
+  // luči se prižigajo po 1 s
+  for (let k=0;k<5;k++) timers.push(setTimeout(()=>{ cols[k].querySelectorAll("i").forEach(i=>i.classList.add("on")); sfx.light(); }, 1000 + k*1000));
+  const hold = 6000 + 200 + Math.random()*2800;   // naključni premor po 5. luči
+  timers.push(setTimeout(()=>{
+    cols.forEach(c => c.querySelectorAll("i").forEach(i => i.classList.remove("on")));
+    tap.classList.add("go"); tap.textContent = "GO!"; phase = "go"; goAt = performance.now(); sfx.go();
+    timers.push(setTimeout(()=>{ if (phase==="go"){ phase="done"; loseGame("Prepočasen start."); } }, LIMIT+400));
+  }, hold));
+  const onTap = e => {
+    if (e.cancelable) e.preventDefault();
+    if (phase === "arming"){ phase="done"; clear(); sfx.jump(); loseGame("JUMP START! Pritisnil si pred ugasnitvijo luči."); return; }
+    if (phase === "go"){
+      phase = "done"; clear();
+      const ms = Math.round(performance.now() - goAt);
+      rt.textContent = "Reakcija: " + ms + " ms";
+      if (ms <= LIMIT){ setTimeout(()=>winGame(2, "Perfect start! " + ms + " ms. Zdaj v bokse."), 500); }
+      else { setTimeout(()=>loseGame("Reakcija " + ms + " ms. Potrebuješ ≤ " + LIMIT + " ms."), 700); }
+    }
+  };
+  tap.ontouchstart = onTap; tap.onmousedown = e => { if (!("ontouchstart" in window)) onTap(e); };
+  const keyH = e => { if (e.code==="Space" || e.code==="Enter") onTap(e); };
+  addEventListener("keydown", keyH);
+  const prevStop = stopGame; stopGame = () => { prevStop(); removeEventListener("keydown", keyH); tap.ontouchstart = tap.onmousedown = null; };
+}
+
+/* ============ IGRA 4: Pit stop ============ */
+function startG4(){
+  const LIMIT = 3.2, TAPS = 3;
+  const wheels = document.querySelectorAll("#pit .wheel"), hud = $("#g4-hud"), sign = $("#g4-sign");
+  const cv = $("#c4"), ctx = cv.getContext("2d");
+  const prog = [0,0,0,0]; let phase = "incoming", t0 = 0, raf = 0, timers = [];
+  wheels.forEach(w => { w.className = "wheel " + ["fl","fr","rl","rr"][+w.dataset.w]; w.textContent = ["FL","FR","RL","RR"][+w.dataset.w]; });
+  hud.textContent = "0.00 s"; sign.textContent = "PRIHAJA…"; sign.className = "sign";
+  // avto (temno modra), pripelje z vrha in se ustavi
+  function drawCar(){
+    ctx.clearRect(0,0,38,94);
+    const px2=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);};
+    px2(4,0,30,5,"#111"); px2(2,88,34,6,"#111");
+    px2(15,4,8,84,"#1e3fa8"); px2(9,30,20,26,"#1e3fa8"); px2(17,8,4,10,"#2b5bd8"); px2(16,36,6,8,"#ffd23f");
+    const wc = i => prog[i]>=TAPS ? "#3ddc84" : (prog[i]>0 ? "#ffd23f" : "#222");
+    px2(3,14,9,16,wc(0)); px2(26,14,9,16,wc(1)); px2(1,62,11,20,wc(2)); px2(26,62,11,20,wc(3));
+  }
+  drawCar();
+  cv.style.transition = "none"; cv.style.top = "-200px";
+  requestAnimationFrame(()=>{ cv.style.transition = "top .9s cubic-bezier(.2,.9,.3,1)"; cv.style.top = "56px"; }); sweep(600,150,.9,"sawtooth",.05);
+  timers.push(setTimeout(()=>{ phase = "go"; t0 = performance.now(); sign.textContent = "GO!"; sign.className = "sign"; beep(880,.15); noise(.5,.05,900);
+    timers.push(setTimeout(()=>{ sign.textContent = ""; }, 400));
+    const tick = () => { if (phase!=="go") return; const el = (performance.now()-t0)/1000; hud.textContent = el.toFixed(2)+" s"; hud.style.color = el > LIMIT*.8 ? "var(--red)" : "var(--gold)"; if (el >= LIMIT){ phase="done"; loseGame("Prepočasen pit stop: " + el.toFixed(2) + " s."); return; } raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }, 1100));
+  const onTap = e => {
+    if (e.cancelable) e.preventDefault();
+    const w = e.currentTarget, i = +w.dataset.w;
+    if (phase === "incoming"){ phase="done"; sign.textContent="PREZGODAJ!"; sign.className="sign red"; beep(120,.2,"sawtooth",.06); setTimeout(()=>loseGame("Mehanik je začel, preden se je avto ustavil."), 600); return; }
+    if (phase !== "go" || prog[i] >= TAPS) return;
+    prog[i]++; if (prog[i]>=TAPS) sfx.wheelOk(); else sfx.gun(); w.classList.remove("s1","s2","s3"); w.classList.add("s"+prog[i]);
+    w.textContent = ["FL","FR","RL","RR"][i] + "\n" + (prog[i]>=TAPS ? "OK" : prog[i]+"/"+TAPS);
+    drawCar();
+    if (prog.every(v => v >= TAPS)){
+      phase = "done"; const el = (performance.now()-t0)/1000; hud.textContent = el.toFixed(2)+" s";
+      sign.textContent = "GO GO GO!"; sfx.rev(); cv.style.transition = "top .6s ease-in"; cv.style.top = "-260px";
+      setTimeout(()=>winGame(3, "Pit stop " + el.toFixed(2) + " s. Še zadnja dirka."), 700);
+    }
+  };
+  wheels.forEach(w => { w.ontouchstart = onTap; w.onmousedown = e => { if (!("ontouchstart" in window)) onTap(e); }; });
+  stopGame = () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); wheels.forEach(w => { w.ontouchstart = w.onmousedown = null; }); };
+}
+
+/* ============ IGRA 1: Lovi senco ============ */
+function startG1(){
+  document.body.classList.add("game-on");
+  const cv = $("#c1"), ctx = cv.getContext("2d"), W=320, H=400;
+  const p = { x:160, y:250, r:11 };
+  const sh = { x:80, y:160, r:27, vx:47, vy:26, t:0, speed:50.4 };
+  let timer = 0, elapsed = 0, lastTick = 0, outro = null;
+  const grass = Array.from({length:70}, () => [Math.random()*W, 100+Math.random()*(H-110)]);
+  // tribuna: 2 vrsti, manj ljudi, bolj detajlni (12px visoki)
+  const shirts = ["#e63946","#ffd23f","#3ddc84","#f4f0e6","#ff8c2b","#2b5bd8","#e63946","#111"];
+  const skins = ["#f1c27d","#c68642","#8d5524","#ffdbac"];
+  const hairs = ["#5b3a1e","#111","#d9a441","#b5b5b5"];
+  const rows = [];
+  for (let r=0;r<2;r++){
+    const row=[]; for (let i=0;i<14;i++) row.push({ x:10+i*22+(r%2)*10, s:shirts[(i*5+r*3)%shirts.length], k:skins[(i+r)%skins.length], h:hairs[(i*3+r)%hairs.length], cap:(i*5+r)%4===0, ph:Math.random()*6.28, flag:(i%5===2), glasses:(i%6===1), cheer:(i%3===0) });
+    rows.push(row);
+  }
+  const sideFans = Array.from({length:8}, (_,i) => ({ x:i<4?4:W-18, y:130+(i%4)*60, s:shirts[(i*3)%shirts.length], k:skins[i%skins.length], h:hairs[i%hairs.length], ph:Math.random()*6.28, cheer:i%2===0 }));
+  function drawFan(ctx,x,y,f,t){
+    const wave = Math.sin(t*5+f.ph) > 0;
+    const hop = f.cheer && wave ? -1 : 0;
+    y += hop;
+    px(ctx,x+2,y+8,8,7,f.s);                       // majica
+    px(ctx,x,y+9,2,5,f.s); px(ctx,x+10,y+9,2,5,f.s); // rokavi
+    px(ctx,x+3,y+15,3,4,"#2b3a6b"); px(ctx,x+6,y+15,3,4,"#2b3a6b"); // hlače
+    px(ctx,x+3,y+1,6,7,f.k);                       // glava
+    px(ctx,x+3,y,6,2,f.h); px(ctx,x+3,y+2,1,2,f.h); // lasje
+    if (f.cap){ px(ctx,x+2,y-1,8,2,"#e63946"); px(ctx,x+8,y,4,1,"#e63946"); }
+    if (f.glasses){ px(ctx,x+3,y+3,2,2,"#111"); px(ctx,x+7,y+3,2,2,"#111"); }
+    else { px(ctx,x+4,y+3,1,1,"#111"); px(ctx,x+7,y+3,1,1,"#111"); }
+    px(ctx,x+5,y+6,2,1,"#a05050");                 // usta
+    if (wave){ px(ctx,x+11,y+2,2,7,f.k); px(ctx,x+11,y+1,2,2,f.k); }   // roka gor
+    else { px(ctx,x+11,y+9,2,5,f.k); }
+    if (f.flag && wave){ px(ctx,x+13,y-5,10,7,"#e63946"); px(ctx,x+15,y-3,6,3,"#ffd23f"); px(ctx,x+12,y-5,1,9,"#111"); }
+  }
+  function drawCrowd(ctx){
+    const t = elapsed;
+    // tribuna: stopničasta, s stebri
+    px(ctx,0,18,W,58,"#6b6b7b"); px(ctx,0,18,W,3,"#2a2a3a");
+    px(ctx,0,44,W,3,"#4a4a5a"); px(ctx,0,70,W,4,"#4a4a5a");
+    for (let x=20;x<W;x+=60) px(ctx,x,18,3,58,"#3a3a4a");
+    // gledalci: zadnja vrsta najprej
+    for (let r=0;r<2;r++) for (const f of rows[r]) drawFan(ctx, f.x, 22+r*26, f, t);
+    // reklamna ograja
+    px(ctx,0,76,W,12,"#f4f0e6"); px(ctx,0,76,W,2,"#e63946"); px(ctx,0,86,W,2,"#e63946");
+    ctx.fillStyle="#e63946"; ctx.font="7px 'Press Start 2P',monospace"; ctx.textBaseline="middle";
+    for (let x=6;x<W;x+=80) ctx.fillText("RICK 28", x, 82);
+    // stoječi navijači ob straneh
+    for (const f of sideFans) drawFan(ctx, f.x, f.y, f, t);
+    px(ctx,0,90,W,2,"#f4f0e6");
+  }
+
+  stopGame = loop(dt => {
+    elapsed += dt;
+    // senca tava
+    sh.t -= dt;
+    if (sh.t <= 0){
+      const a = Math.random()*Math.PI*2; sh.t = .8+Math.random()*1.0;
+      sh.speed = Math.min(50.4 + elapsed*2.2, 100);
+      sh.vx = Math.cos(a)*sh.speed; sh.vy = Math.sin(a)*sh.speed;
+    }
+    sh.x += sh.vx*dt; sh.y += sh.vy*dt;
+    if (sh.x < sh.r){ sh.x = sh.r; sh.vx = Math.abs(sh.vx); }
+    if (sh.x > W-sh.r){ sh.x = W-sh.r; sh.vx = -Math.abs(sh.vx); }
+    if (sh.y < 96+sh.r){ sh.y = 96+sh.r; sh.vy = Math.abs(sh.vy); }
+    if (sh.y > H-sh.r){ sh.y = H-sh.r; sh.vy = -Math.abs(sh.vy); }
+    // igralec
+    if (!outro){ p.x += input.x*150*dt; p.y += input.y*150*dt; }
+    p.x = Math.max(p.r, Math.min(W-p.r, p.x)); p.y = Math.max(96+p.r, Math.min(H-p.r, p.y));
+    const inside = Math.hypot(p.x-sh.x, p.y-sh.y) + p.r <= sh.r + 2;
+    if (inside && !outro){ timer += dt; if (Math.floor(timer) > lastTick){ lastTick = Math.floor(timer); sfx.tick(); } }
+    const left = Math.max(0, 40 - elapsed);
+    $("#g1-hud").textContent = timer.toFixed(1) + " s  |  " + Math.ceil(left) + "";
+    if (left <= 0 && timer < 10 && !outro){ loseGame("Zmanjkalo ti je časa. Senca je zmagala."); return; }
+    $("#g1-hud").style.color = inside ? "var(--green)" : "var(--gold)";
+
+    // risanje
+    px(ctx,0,0,W,86,"#7ec8ff");                 // nebo
+    px(ctx,0,86,W,H-86,"#4caf50");              // trava
+    ctx.fillStyle = "#3d8f40"; grass.forEach(([x,y]) => { ctx.fillRect(x,y,2,5); ctx.fillRect(x+3,y+2,2,3); });
+    // sonce
+    px(ctx,262,10,24,24,"#ffd23f"); px(ctx,269,4,10,36,"#ffd23f"); px(ctx,256,17,36,10,"#ffd23f");
+    px(ctx,265,13,18,18,"#fff3a0");
+    drawCrowd(ctx);
+    // senca
+    ctx.fillStyle = "rgba(10,10,40,.55)"; ctx.beginPath(); ctx.arc(sh.x, sh.y, sh.r, 0, Math.PI*2); ctx.fill();
+    // možiček: sedi na stolu ali hodi s stolom v roki
+    const moving = Math.abs(input.x)+Math.abs(input.y) > 0;
+    const x = p.x-10, y = p.y-14;
+    const step = moving ? (Math.floor(elapsed*8)%2) : 0;
+    if (!moving){
+      px(ctx,x+2,y+18,16,4,"#8b4a1f"); px(ctx,x+2,y+22,3,8,"#8b4a1f"); px(ctx,x+15,y+22,3,8,"#8b4a1f"); px(ctx,x+15,y+8,3,12,"#8b4a1f");
+      px(ctx,x+6,y+8,8,10,"#e63946");        // majica
+      px(ctx,x+4,y+16,12,4,"#2b5bd8");       // hlače
+      px(ctx,x+3,y+13,3,5,"#f1c27d"); px(ctx,x+14,y+13,3,5,"#f1c27d"); // roke na naslonjalu
+    } else {
+      const facing = input.x < 0 ? -1 : 1;
+      px(ctx,x+6,y+8,8,10,"#e63946");        // majica
+      px(ctx,x+6,y+18,3,8+step*2,"#2b5bd8"); px(ctx,x+11,y+18,3,10-step*2,"#2b5bd8"); // noge hodijo
+      // stol zložen pod pazduho
+      const cx = facing>0 ? x+15 : x-4;
+      px(ctx,cx,y+6,4,18,"#8b4a1f"); px(ctx,cx-2+ (facing>0?0:0),y+6,8,3,"#8b4a1f"); px(ctx,cx+1,y+22,2,4,"#8b4a1f");
+      px(ctx,facing>0 ? x+13 : x+4, y+10, 4, 3, "#f1c27d");   // roka drži stol
+    }
+    px(ctx,x+6,y,8,8,"#f1c27d");             // glava
+    px(ctx,x+6,y-2,8,2,"#5b3a1e");           // lasje
+    px(ctx,x+5,y+2,4,3,"#111"); px(ctx,x+11,y+2,4,3,"#111"); px(ctx,x+9,y+3,2,1,"#111"); // očala
+    if (inside && !moving){ px(ctx,x+8,y+6,4,1,"#7a2020"); }
+    // outro: iz tribune priteče možiček in te nadere
+    if (timer >= 10 && !outro){ outro = { x: p.x < 160 ? 40 : 280, y: 92, t: 0, arrived:false, ph:0 }; sh.vx = sh.vy = 0; }
+    if (outro){
+      outro.t += dt;
+      if (!outro.arrived){
+        const tx = p.x + (p.x < 160 ? 22 : -22), ty = p.y + 2;
+        const dx = tx - outro.x, dy = ty - outro.y, d = Math.hypot(dx,dy);
+        const sp = 120*dt;
+        if (d <= sp){ outro.x = tx; outro.y = ty; outro.arrived = true; outro.t = 0; sfx.horn(); }
+        else { outro.x += dx/d*sp; outro.y += dy/d*sp; }
+      }
+      // možiček (rdeča majica, teče)
+      const rx = outro.x-6, ry = outro.y-14, run = outro.arrived ? 0 : Math.floor(elapsed*10)%2;
+      px(ctx,rx+3,ry+8,8,8,"#e63946"); px(ctx,rx+4,ry,6,7,"#c68642"); px(ctx,rx+4,ry-1,6,2,"#111");
+      px(ctx,rx+3,ry+16,3,7+run*2,"#2b3a6b"); px(ctx,rx+8,ry+16,3,9-run*2,"#2b3a6b");
+      if (outro.arrived){ px(ctx,rx+11,ry+4,2,7,"#c68642"); px(ctx,rx+11,ry+2,3,3,"#c68642"); }  // kaže s prstom
+      else { px(ctx,rx+11,ry+9,2,5,"#c68642"); px(ctx,rx+1,ry+9,2,5,"#c68642"); }
+      if (outro.arrived){
+        // oblaček
+        const lines = ["Nisi hotu držat","mesta? Zdej trpi","na soncu, pička!"];
+        const bw = 230, bh = 74, bx = Math.max(4, Math.min(W-bw-4, outro.x-bw/2)), by = Math.max(96, outro.y-100);
+        px(ctx,bx,by,bw,bh,"#0b0c1e"); px(ctx,bx+4,by+4,bw-8,bh-8,"#f4f0e6");
+        px(ctx,outro.x-4,by+bh,8,8,"#f4f0e6"); px(ctx,outro.x-2,by+bh+8,4,4,"#0b0c1e");
+        ctx.fillStyle="#0b0c1e"; ctx.font="11px 'Press Start 2P',monospace"; ctx.textBaseline="top";
+        lines.forEach((l,i)=>ctx.fillText(l, bx+10, by+12+i*18));
+        if (outro.t > 5.2){ stopGame(); stopGame=null; winGame(0, "Ujel si senco. Zdaj pa kviz."); }
+      }
+    }
+  });
+}
+
+/* ============ IGRA 2: F1 kviz ============ */
+function startG2(){
+  let i = 0;
+  function render(){
+    if (i >= QUIZ.length){ winGame(1, "Pet od petih. Zdaj pa start."); return; }
+    const q = QUIZ[i];
+    $("#g2-hud").textContent = `Vprašanje ${i+1} / ${QUIZ.length}`;
+    $("#g2-flash").textContent = ""; $("#g2-flash").className = "flash";
+    const order = q.opts.map((_,k)=>k).sort(()=>Math.random()-.5);
+    $("#quiz").innerHTML = `<div class="q">${q.q}</div>` + order.map(k => `<button class="btn opt" data-k="${k}">${q.opts[k]}</button>`).join("");
+    $("#quiz").querySelectorAll(".opt").forEach(b => b.onclick = () => {
+      if (+b.dataset.k === q.a){
+        b.classList.add("ok"); sfx.ok();
+        $("#g2-flash").textContent = "Pravilno!"; $("#g2-flash").className = "flash ok";
+        setTimeout(()=>{ i++; render(); }, 700);
+      } else {
+        b.classList.add("bad");
+        $("#g2-flash").textContent = "Napačno!"; $("#g2-flash").className = "flash bad";
+        $("#quiz").querySelectorAll(".opt").forEach(o => o.disabled = true);
+        setTimeout(()=>loseGame("Napačen odgovor. Pravilno: " + q.opts[q.a] + "."), 700);
+      }
+    });
+  }
+  render();
+}
+
+/* ============ IGRA 3: Drži vodstvo ============ */
+function startG3(){
+  document.body.classList.add("game-on");
+  const cv = $("#c3"), ctx = cv.getContext("2d"), W=320, H=400;
+  const roadL = 40, roadR = 280, CW = 20, CH = 34;
+  const p = { x:160, y:190 };
+  const ais = [
+    { x:100, y:300, c:"#e63946", side:-1, t:0, speed:52.25, crash:0, ang:0 },
+    { x:220, y:335, c:"#ff8c2b", side:1,  t:0, speed:45.6, crash:0, ang:0 },
+    { x:160, y:370, c:"#3ddc84", side:1,  t:.4, speed:41.8, crash:0, ang:0 },
+  ];
+  let timer = 0, scroll = 0, msg = 0, lastTick = 0, elapsed3 = 0, BOOST_MAX = 4.0, fuel = BOOST_MAX;
+  canvasDrag(cv, (dx) => { p.x += dx; });
+
+  function drawCar(x, y, c, ang=0){
+    if (ang){ ctx.save(); ctx.translate(x,y); ctx.rotate(ang); drawCar(0,0,c,0); ctx.restore(); return; }
+    const l = x - CW/2, t = y - CH/2;
+    px(ctx,l-2,t,CW+4,4,"#111");            // prednje krilo
+    px(ctx,l-3,t+CH-5,CW+6,5,"#111");       // zadnje krilo
+    px(ctx,l+6,t+2,8,CH-4,c);               // trup
+    px(ctx,l+4,t+10,12,10,c);
+    px(ctx,l+8,t+12,4,5,"#111");            // čelada
+    px(ctx,l,t+5,5,8,"#222"); px(ctx,l+CW-5,t+5,5,8,"#222");   // kolesa
+    px(ctx,l-1,t+CH-14,6,9,"#222"); px(ctx,l+CW-5,t+CH-14,6,9,"#222");
+  }
+
+  let eng = null;
+  try{ if (!muted){ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); eng = { o:actx.createOscillator(), g:actx.createGain() }; eng.o.type="sawtooth"; eng.o.frequency.value=110; eng.g.gain.value=.025; eng.o.connect(eng.g); eng.g.connect(actx.destination); eng.o.start(); } }catch(e){ eng=null; }
+  const stopLoop = loop(dt => {
+    elapsed3 += dt;
+    if (eng){ const tgt = 110 + (input.y<0 && fuel>0 ? 160 : 0) + Math.abs(input.x)*30 + Math.sin(elapsed3*30)*4; eng.o.frequency.value += (tgt - eng.o.frequency.value)*Math.min(1,dt*6); }
+    // igralec
+    p.x += input.x*165*dt; p.x = Math.max(roadL+CW/2, Math.min(roadR-CW/2, p.x));
+    const wantBoost = input.y < 0 && fuel > 0;
+    if (wantBoost) fuel = Math.max(0, fuel - dt);
+    const boost = wantBoost ? 40 : 0;      // ▲ = boost, dokler je baterija
+    scroll = (scroll + (260+boost)*dt) % 40;
+    let overtaken = false;
+    for (const a of ais){
+      a.t -= dt;
+      if (a.t <= 0){ a.t = .5+Math.random()*.9; a.side = (p.x > 160) ? -1 : 1; if (Math.random()<.4) a.side *= -1; }
+      const targetX = p.x + a.side*(CW+14);
+      a.x += Math.sign(targetX - a.x) * Math.min(Math.abs(targetX-a.x), 105*dt);
+      a.x = Math.max(roadL+CW/2, Math.min(roadR-CW/2, a.x));
+      a.grace = Math.max(0, (a.grace||0) - dt);
+      if (a.crash > 0){
+        // crash: en obrat (360°), počasi zdrsne nazaj, nato se poravna
+        a.crash -= dt;
+        const prog = 1 - a.crash/1.0;
+        a.ang = Math.min(prog,1) * Math.PI*2;
+        a.y = Math.min(a.y + 70*dt, H-30);
+        if (a.crash <= 0){ a.ang = 0; a.crash = 0; a.grace = 1.2; a.t = 0; }
+        continue;
+      }
+      const blocked = Math.abs(a.x - p.x) < CW+2 && a.y > p.y;
+      const touching = blocked && a.y - p.y < CH - 2;          // pravi trk (prekrivanje)
+      if (touching && a.grace <= 0){ a.crash = 1.0; sfx.crash(); continue; }
+      // izogibanje ostalim formulam: če je kdo tik pred mano v isti liniji, zavij stran in popusti
+      let avoid = 0, brake = 1;
+      for (const o of ais){
+        if (o === a) continue;
+        const dx = o.x - a.x, dy = a.y - o.y;
+        if (Math.abs(dx) < CW+6 && dy > -6 && dy < CH+22){ avoid = dx >= 0 ? -1 : 1; brake = 0.55; }
+      }
+      if (avoid){ a.side = avoid; a.t = Math.max(a.t, .3); }
+      if (blocked){ a.y = Math.max(a.y, p.y + CH + 4); }
+      else { a.y -= (a.speed*brake - boost*.8) * dt; }
+      a.y = Math.min(a.y, H-30);
+      if (a.y < p.y - 4) overtaken = true;
+    }
+    // razmik med AI
+    if (overtaken){ loseGame("Prehitel te je pri " + timer.toFixed(1) + " s."); return; }
+    {
+      timer += dt; if (Math.floor(timer) > lastTick){ lastTick = Math.floor(timer); sfx.tick(); }
+    }
+    msg -= dt;
+    $("#g3-hud").textContent = msg > 0 ? "Prehitel te je!" : timer.toFixed(1) + " s";
+    $("#g3-hud").style.color = msg > 0 ? "var(--red)" : "var(--gold)";
+
+    // risanje
+    px(ctx,0,0,W,H,"#3d8f40");
+    px(ctx,roadL,0,roadR-roadL,H,"#555");
+    px(ctx,roadL-6,0,6,H,"#e63946"); px(ctx,roadR,0,6,H,"#f4f0e6");
+    for (let y=-40+scroll; y<H; y+=40){ px(ctx,157,y,6,20,"#f4f0e6"); px(ctx,roadL-6,y+20,6,10,"#f4f0e6"); px(ctx,roadR,y+20,6,10,"#e63946"); }
+    for (const a of ais) drawCar(a.x, a.y, a.c, a.ang);
+    drawCar(p.x, p.y, "#1e3fa8");
+    // baterija boosta (zgoraj desno)
+    const bx = W-72, by = 8, segs = 6, lit = Math.round(fuel/BOOST_MAX*segs);
+    px(ctx,bx,by,60,24,"#111"); px(ctx,bx+60,by+8,4,8,"#111");
+    px(ctx,bx+2,by+2,56,20,"#333");
+    for (let i=0;i<segs;i++) if (i<lit) px(ctx,bx+4+i*9,by+4,7,16, fuel>1 ? "#3ddc84" : "#ffd23f");
+    if (wantBoost){ px(ctx,p.x-3,p.y+CH/2+1,6,5,"#ff8c2b"); px(ctx,p.x-1,p.y+CH/2+6,2,3,"#ffd23f"); }  // plamen
+    if (timer >= 15){ stopGame(); stopGame=null; winGame(4, "Obdržal si vodstvo!"); }
+  });
+  stopGame = () => { stopLoop(); if (eng){ try{ eng.o.stop(); }catch(e){} eng=null; } };
+}
+
+/* ============ FINALE ============ */
+let finalTimers = [];
+function showFinal(){
+  finalTimers.forEach(clearTimeout); finalTimers = [];
+  const b1 = $("#max .b1"); b1.classList.remove("show");
+  $("#loc-text").textContent = GIFT_LOCATION;
+  finalTimers.push(setTimeout(()=>{ b1.classList.add("show"); sfx.chest(); confetti(); }, 500));
+  const stopFw = startFireworks($("#cF"));
+  stopGame = () => { stopFw(); finalTimers.forEach(clearTimeout); finalTimers = []; };
+}
+// ognjemet v ozadju zaključnega zaslona
+function startFireworks(cv){
+  const ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+  const cols = ["#e63946","#ffd23f","#3ddc84","#ff8c2b","#2b5bd8","#f4f0e6","#ff69b4"];
+  const fw = []; let t = 0, fwT = 0;
+  const stars = Array.from({length:60}, (_,i) => [(i*53)%W, (i*37)%H]);
+  return loop(dt => {
+    t += dt; fwT -= dt;
+    if (fwT <= 0){ fw.push({ x:40+Math.random()*(W-80), y:30+Math.random()*(H*.85), c:cols[Math.floor(Math.random()*cols.length)], c2:cols[Math.floor(Math.random()*cols.length)], age:0, life:1.3+Math.random()*.6, n:18+Math.floor(Math.random()*8), ph:Math.random()*6.28 }); fwT = .12+Math.random()*.25; }
+    px(ctx,0,0,W,H,"#0b0f2e");
+    stars.forEach(([x,y],i) => px(ctx,x,y,2,2,(Math.floor(t*3+i)%3)?"#fff":"#667"));
+    for (const f of fw){
+      f.age += dt; const pr = f.age/f.life, rad = 8+pr*52, g = pr*pr*30;
+      if (pr < .12){ const r0 = 14*(1-pr/.12); px(ctx,f.x-r0/2,f.y-r0/2,r0,r0,"#fff"); }   // blisk ob eksploziji
+      ctx.globalAlpha = Math.max(0, 1-pr);
+      for (let k=0;k<f.n;k++){
+        const a = f.ph + k/f.n*Math.PI*2, cx = f.x+Math.cos(a)*rad, cy = f.y+Math.sin(a)*rad+g;
+        px(ctx,cx,cy,4,4,f.c);                                             // zunanja iskra
+        px(ctx,f.x+Math.cos(a)*rad*.7, f.y+Math.sin(a)*rad*.7+g*.7, 3,3, f.c2);   // srednji obroč
+        px(ctx,f.x+Math.cos(a)*rad*.4, f.y+Math.sin(a)*rad*.4+g*.4, 2,2, "#fff"); // notranji obroč
+        if (pr > .3) px(ctx,cx,cy-6,2,4,f.c);                                // repek
+      }
+      ctx.globalAlpha = 1;
+    }
+    for (let i=fw.length-1;i>=0;i--) if (fw[i].age>fw[i].life) fw.splice(i,1);
+  });
+}
+
+/* ============ PARADA (po 5 porazih) ============ */
+function showParade(done){
+  const el = $("#parade"), cv = $("#cP"), ctx = cv.getContext("2d"), W=cv.width, H=cv.height;
+  el.classList.add("show");
+  // Max se po 1 s pojavi čez platno in zapoje besedilo
+  const maxEl = $("#parade-max"); maxEl.classList.remove("in");
+  const maxT = setTimeout(()=>maxEl.classList.add("in"), 1000);
+  const cols = ["#e63946","#ff8c2b","#3ddc84","#ffd23f","#f4f0e6","#2b5bd8","#111","#b5b5b5","#ff69b4","#00c2c7","#8b4a1f"];
+  const cars = [{x:-60, c:"#1e3fa8", blue:true}];
+  for (let i=1;i<=21;i++) cars.push({x:-60 - i*44 - Math.random()*6, c:cols[i%cols.length], blue:false, wob:Math.random()*6.28});
+  let t=0, last=performance.now(), run=true;
+  const PARADE_SEC = 12;   // koliko sekund traja parada
+  const melody=[523,523,523,659,523,523,523,784]; let mi=0, mt=1.05;
+  function car(x,y,c,blue){
+    px(ctx,x,y+3,6,14,"#111"); px(ctx,x+34,y+2,6,16,"#111");      // krila
+    px(ctx,x+6,y+7,28,6,c); px(ctx,x+10,y+4,14,12,c); px(ctx,x+22,y+7,5,6,blue?"#2b5bd8":"#fff8");
+    px(ctx,x+16,y+8,5,4,blue?"#ffd23f":"#eee");
+    px(ctx,x+8,y,9,5,"#222"); px(ctx,x+8,y+15,9,5,"#222"); px(ctx,x+26,y,10,5,"#222"); px(ctx,x+26,y+15,10,5,"#222");
+    if (blue){ px(ctx,x-6,y+8,6,4,"#ff8c2b"); px(ctx,x-9,y+9,3,2,"#ffd23f"); }
+  }
+  function frame(now){
+    if (!run) return;
+    const dt=Math.min((now-last)/1000,.05); last=now; t+=dt; mt-=dt;
+    if (mt<=0 && mi<melody.length){ beep(melody[mi],.12,"square",.05); mt = mi===3||mi===7 ? .5 : .22; mi++; }
+    px(ctx,0,0,W,H,"#7ec8ff"); px(ctx,0,40,W,20,"#5c5c6e");                       // nebo + tribuna
+    for (let i=0;i<Math.ceil(W/14);i++){ px(ctx,4+i*14,44,8,9,cols[i%cols.length]); px(ctx,6+i*14,40,4,5,"#f1c27d"); }
+    px(ctx,0,60,W,20,"#4caf50"); px(ctx,0,80,W,90,"#555"); px(ctx,0,170,W,H-170,"#4caf50");  // cesta
+    px(ctx,0,80,W,4,"#e63946"); px(ctx,0,166,W,4,"#e63946");
+    for (let x=((t*180)%40)-40;x<W;x+=40){ px(ctx,x,123,20,4,"#f4f0e6"); px(ctx,x,80,20,4,"#f4f0e6"); px(ctx,x,166,20,4,"#f4f0e6"); }
+    for (const c of cars){ c.x += 110*dt; const y = c.blue ? 112 : 105 + Math.sin(t*3+c.wob)*12; car(c.x, y, c.c, c.blue); }
+    if (t < PARADE_SEC) requestAnimationFrame(frame); else { run=false; clearTimeout(maxT); maxEl.classList.remove("in"); el.classList.remove("show"); done(); }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ============ INTRO ANIMACIJA ============ */
+let introStop = null;
+function startIntro(){
+  if (introStop) introStop();
+  const cv = $("#c0"), ctx = cv.getContext("2d"), W=320, H=420;
+  const roadL=110, roadR=210;
+  const shirts=["#e63946","#ffd23f","#3ddc84","#f4f0e6","#ff8c2b","#2b5bd8","#111"], skins=["#f1c27d","#c68642","#8d5524","#ffdbac"];
+  const fans=[];
+  for (let side=0;side<2;side++) for (let r=0;r<6;r++) for (let i=0;i<8;i++){
+    const x = side===0 ? 4+i*12 : W-16-i*12;
+    fans.push({x, y:160+r*36, s:shirts[(i*3+r*5+side*2)%shirts.length], k:skins[(i+r)%skins.length], ph:Math.random()*6.28, cheer:(i+r)%3===0, flag:(i*7+r)%9===0});
+  }
+  const fw=[]; let scroll=0, t=0, carX=160, lightsT=0;
+  function spawnFw(){ const x=40+Math.random()*(W-80), y=30+Math.random()*70, c=shirts[Math.floor(Math.random()*5)]; fw.push({x,y,c,age:0,life:.9+Math.random()*.5}); }
+  let fwT=0;
+  const lightEls = document.querySelectorAll("#lights i");
+  introStop = loop(dt => {
+    t+=dt; scroll=(scroll+220*dt)%40; fwT-=dt; if(fwT<=0){ spawnFw(); fwT=.25+Math.random()*.4; }
+    carX = 160 + Math.sin(t*1.3)*28;
+    lightsT = (lightsT+dt)%3.5; const lit = Math.min(5, Math.floor(lightsT/0.5)); lightEls.forEach((e,i)=>e.classList.toggle("on", i<lit && lightsT<3));
+    // nebo (noč)
+    px(ctx,0,0,W,H,"#0b0f2e");
+    for (let i=0;i<40;i++){ px(ctx,(i*53)%W,(i*37)%120,1,1, (Math.floor(t*4+i)%3)?"#fff":"#889"); }
+    // ognjemet
+    for (const f of fw){
+      f.age+=dt; const pr=f.age/f.life, rad=8+pr*34, al=1-pr;
+      ctx.globalAlpha=al;
+      for (let k=0;k<12;k++){ const a=k/12*Math.PI*2; px(ctx,f.x+Math.cos(a)*rad, f.y+Math.sin(a)*rad+pr*pr*20, 3,3, f.c); px(ctx,f.x+Math.cos(a)*rad*.6, f.y+Math.sin(a)*rad*.6+pr*pr*12, 2,2, "#fff"); }
+      ctx.globalAlpha=1;
+    }
+    for (let i=fw.length-1;i>=0;i--) if (fw[i].age>fw[i].life) fw.splice(i,1);
+    // napis
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    const pulse = 1+Math.sin(t*4)*.06;
+    ctx.save(); ctx.translate(W/2,88); ctx.scale(pulse,pulse);
+    ctx.font="18px 'Press Start 2P',monospace"; ctx.fillStyle="#0b0c1e"; ctx.fillText("VSE NAJBOLJŠE",3,3); ctx.fillStyle="#ffd23f"; ctx.fillText("VSE NAJBOLJŠE",0,0);
+    ctx.font="22px 'Press Start 2P',monospace"; ctx.fillStyle="#0b0c1e"; ctx.fillText("RICK!",3,29); ctx.fillStyle="#f4f0e6"; ctx.fillText("RICK!",0,26);
+    ctx.restore(); ctx.textAlign="left";
+    // tribune (obstrani): streha, stopničaste vrste, sedeži
+    for (const side of [0,1]){
+      const x0 = side===0 ? 0 : W-104;
+      px(ctx,x0,130,104,H-130,"#4a4a5a");
+      px(ctx,x0,126,104,8,"#2a2a3a");                       // streha
+      px(ctx,x0+6,134,3,H-134,"#2a2a3a"); px(ctx,x0+95,134,3,H-134,"#2a2a3a");   // stebri
+      for (let r=0;r<6;r++){
+        const y=154+r*36;
+        px(ctx,x0,y,104,30,"#5c5c6e");                       // stopnica
+        px(ctx,x0,y+30,104,6,"#33334a");                     // rob stopnice
+        for (let i=0;i<8;i++){ const sx = side===0 ? 4+i*12 : W-16-i*12; px(ctx,sx+1,y+18,10,8,(i+r)%2?"#2b5bd8":"#e63946"); }  // sedeži
+      }
+    }
+    for (const f of fans){
+      const w=Math.sin(t*5+f.ph)>0, y=f.y+(f.cheer&&w?-2:0);
+      px(ctx,f.x+2,y+8,8,8,f.s);                     // majica
+      px(ctx,f.x+3,y+1,6,7,f.k);                     // glava
+      px(ctx,f.x+3,y,6,2,"#3a2410");                 // lasje
+      if (w){ px(ctx,f.x+10,y+1,2,8,f.k); } else { px(ctx,f.x+10,y+9,2,5,f.k); }
+      if (f.flag && w){ px(ctx,f.x+12,y-5,8,6,"#e63946"); px(ctx,f.x+14,y-4,4,3,"#ffd23f"); }
+    }
+    // ograje + cesta
+    px(ctx,roadL,130,roadR-roadL,H-130,"#4a4a4a");
+    px(ctx,roadL-6,130,6,H-130,"#e63946"); px(ctx,roadR,130,6,H-130,"#e63946");
+    for (let y=130-40+scroll;y<H;y+=40){ px(ctx,157,y,6,20,"#f4f0e6"); px(ctx,roadL-6,y,6,20,"#f4f0e6"); px(ctx,roadR,y,6,20,"#f4f0e6"); }
+    // ciljna črta (šahovnica) drsi
+    const fy = ((t*220)%600)-60; if (fy>130-20 && fy<H){ for(let i=0;i<10;i++) for(let j=0;j<2;j++) px(ctx,roadL+i*10,fy+j*8,10,8,(i+j)%2?"#111":"#f4f0e6"); }
+    // formula (temno modra)
+    const cx=carX, cy=300, CW=22, CH=38, l=cx-CW/2, tp=cy-CH/2;
+    px(ctx,l-3,tp,CW+6,5,"#111"); px(ctx,l-4,tp+CH-6,CW+8,6,"#111");
+    px(ctx,l+7,tp+2,8,CH-4,"#1e3fa8"); px(ctx,l+4,tp+11,14,12,"#1e3fa8"); px(ctx,l+8,tp+4,6,6,"#2b5bd8");
+    px(ctx,l+9,tp+13,4,6,"#ffd23f");
+    px(ctx,l,tp+6,6,9,"#222"); px(ctx,l+CW-6,tp+6,6,9,"#222"); px(ctx,l-1,tp+CH-16,7,10,"#222"); px(ctx,l+CW-6,tp+CH-16,7,10,"#222");
+    if (Math.floor(t*12)%2){ px(ctx,l+9,tp+CH+1,4,4,"#ff8c2b"); px(ctx,l+10,tp+CH+5,2,3,"#ffd23f"); }
+    // spodnji trak
+    px(ctx,0,H-22,W,22,"#0b0c1e"); ctx.fillStyle="#ffd23f"; ctx.font="8px 'Press Start 2P',monospace"; ctx.textBaseline="middle";
+    const tx = W - ((t*60)%(W+260)); ctx.fillText("★ GRAND PRIX RICK 28 ★ 24.10. ★ LIGHTS OUT ★", tx, H-11);
+  });
+}
+const _go = go;
+go = function(name){ if (introStop){ introStop(); introStop=null; } _go(name); if (name==="start") startIntro(); };
+startIntro();
+
+// začetek: ?test=1|2|3 skoči naravnost v igro (za testiranje)
+const testG = new URLSearchParams(location.search).get("test");
+if (["0","1","2","3","4"].includes(testG)) go("g"+testG);
+</script>
+</body>
+</html>
