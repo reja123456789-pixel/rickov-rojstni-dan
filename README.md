@@ -50,3 +50,9 @@ zaslon, `fails = 2; loseGame('test')` pa pokaže Lancea.
 
 Slike dirkačev in priložena glasba so uporabljene samo za osebno,
 nekomercialno rojstnodnevno darilo. Avtorske pravice pripadajo njihovim lastnikom.
+
+## Igraj na spletu
+
+https://reja123456789-pixel.github.io/rickov-rojstni-dan/
+
+Za dostop s telefona sta priloženi `qr-koda.png` in `qr-plakat.png`.
