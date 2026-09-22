@@ -217,7 +217,7 @@ canvas{width:288px;height:360px;image-rendering:pixelated;image-rendering:crisp-
     <h2>5 · Drži vodstvo</h2>
     <div class="hud big" id="g3-hud">0.0 s</div>
     <canvas id="c3" width="320" height="400"></canvas>
-    <p class="hint">◀ ▶ zavijaš, ▲ boost (4 s baterije). Zdrži 15 sekund.</p>
+    <p class="hint">◀ ▶ zavijaš, ▲ boost (5 s baterije). Zdrži 15 sekund.</p>
   </section>
 
   <section class="screen" id="s-win">
@@ -396,7 +396,7 @@ function renderHub(){
     "5 vprašanj o F1, 4 možnosti. En napačen odgovor = konec.",
     "Startne luči se prižgejo ena za drugo. Ko VSE ugasnejo, takoj pritisni – v 0,25 s. Prezgodaj = jump start.",
     "Avto pripelje v boks. Ko se ustavi, vsako kolo pritisni 3× (FL, FR, RL, RR). Vsa štiri pod 3,2 s. Ne začni, dokler se avto ne ustavi!",
-    "Ti si modra formula spredaj. Z ◀ ▶ blokiraj rdečo, oranžno in zeleno, z ▲ boost (4 s baterije). Zdrži 15 s, nihče ne sme mimo.",
+    "Ti si modra formula spredaj. Z ◀ ▶ blokiraj rdečo, oranžno in zeleno, z ▲ boost (5 s baterije). Zdrži 15 s, nihče ne sme mimo.",
   ];
   $("#hub-text").textContent = "Naslednja igra: " + names[next];
   $("#hub-rules").textContent = rules[next];
@@ -756,7 +756,9 @@ function startG3(){
     { x:220, y:335, c:"#ff8c2b", side:1,  t:0, speed:45.6, crash:0, ang:0 },
     { x:160, y:370, c:"#3ddc84", side:1,  t:.4, speed:41.8, crash:0, ang:0 },
   ];
-  let timer = 0, scroll = 0, msg = 0, lastTick = 0, elapsed3 = 0, BOOST_MAX = 4.0, fuel = BOOST_MAX;
+  const BOOST_MAX = 5.0;     // koliko sekund zdrži baterija
+  const BOOST_POWER = 62;    // kako močno boost odriva nasprotnike nazaj
+  let timer = 0, scroll = 0, msg = 0, lastTick = 0, elapsed3 = 0, fuel = BOOST_MAX;
   canvasDrag(cv, (dx) => { p.x += dx; });
 
   function drawCar(x, y, c, ang=0){
@@ -780,7 +782,7 @@ function startG3(){
     p.x += input.x*165*dt; p.x = Math.max(roadL+CW/2, Math.min(roadR-CW/2, p.x));
     const wantBoost = input.y < 0 && fuel > 0;
     if (wantBoost) fuel = Math.max(0, fuel - dt);
-    const boost = wantBoost ? 40 : 0;      // ▲ = boost, dokler je baterija
+    const boost = wantBoost ? BOOST_POWER : 0;      // ▲ = boost, dokler je baterija
     scroll = (scroll + (260+boost)*dt) % 40;
     let overtaken = false;
     for (const a of ais){
