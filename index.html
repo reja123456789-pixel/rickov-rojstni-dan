@@ -281,7 +281,6 @@ canvas{width:288px;height:360px;image-rendering:pixelated;image-rendering:crisp-
     <button id="mute">zvok: ON</button>
     <button id="music">glasba: ON</button>
     <button id="reset">reset</button>
-    <button id="skip">skip game</button>
   </div>
 </div>
 
@@ -367,13 +366,6 @@ const autoStart = () => { if (bgAvailable && bg.paused && musicOn) setMusic(true
 addEventListener("pointerdown", autoStart); addEventListener("keydown", autoStart);
 $("#mute").onclick = () => { muted = !muted; $("#mute").textContent = "zvok: " + (muted?"OFF":"ON"); bg.muted = muted; };
 $("#reset").onclick = () => { state.done=[false,false,false,false,false]; save(); fails = 0; $("#troll").classList.remove("show"); go("start"); };
-$("#skip").onclick = () => {
-  const cur = document.querySelector(".screen.active").id;
-  const i = ORDER.indexOf(cur.slice(2));
-  if (i < 0) return;
-  if (stopGame) { stopGame(); stopGame = null; }
-  winGame(i, "(preskočeno)");
-};
 $("#replay").onclick = () => { state.done=[false,false,false,false,false]; save(); go("start"); };
 
 /* ---------- zasloni ---------- */
