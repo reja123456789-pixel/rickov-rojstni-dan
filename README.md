@@ -56,3 +56,6 @@ nekomercialno rojstnodnevno darilo. Avtorske pravice pripadajo njihovim lastniko
 https://reja123456789-pixel.github.io/rickov-rojstni-dan/
 
 Za dostop s telefona sta priloženi `qr-koda.png` in `qr-plakat.png`.
+
+Zraven sta še `qr-koda-rickroll.png` in `qr-plakat-rickroll.png`. Videti sta
+popolnoma enako, koda pa vodi na Ricka Astleyja.
