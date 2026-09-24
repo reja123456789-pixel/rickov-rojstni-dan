@@ -59,3 +59,10 @@ Za dostop s telefona sta priloženi `qr-koda.png` in `qr-plakat.png`.
 
 Zraven sta še `qr-koda-rickroll.png` in `qr-plakat-rickroll.png`. Videti sta
 popolnoma enako, koda pa vodi na Ricka Astleyja.
+
+## Zaklad
+
+`zaklad-a4.pdf` je dvostranski A4 za obojestranski tisk. Na zunanji strani je
+zaprta skrinja z napisom ODPRI ME, na notranji pa QR koda do posnetka in napis
+POGLEJ DO KONCA. Obe strani sta shranjeni tudi posebej kot `zaklad-zunaj.png`
+in `zaklad-notri.png`, skripta, ki ju nariše, pa je `zaklad.py`.
