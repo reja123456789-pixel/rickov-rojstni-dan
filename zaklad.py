@@ -1,7 +1,7 @@
 import segno
 from PIL import Image, ImageDraw, ImageFont
 
-URL = "https://drive.google.com/file/d/1Mvs4MHRQAJwymKJlaQlvIoPvHhBnqHV-/view?usp=sharing"
+URL = "https://drive.google.com/file/d/1nNgWIQToU-H_D3BczjI-HuDAYgdrmQeu/view?usp=sharing"
 
 DPI = 300
 W, H = 2480, 3508                      # A4 pri 300 dpi
