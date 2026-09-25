@@ -203,7 +203,7 @@ canvas{width:288px;height:360px;image-rendering:pixelated;image-rendering:crisp-
     <h2>1 · Lovi senco</h2>
     <div class="hud big" id="g1-hud">0.0 s</div>
     <canvas id="c1" width="320" height="400"></canvas>
-    <p class="hint">Ostani pod senco 10 sekund. Imaš 40 sekund.</p>
+    <p class="hint">Ostani pod senco 7 sekund. Imaš 40 sekund.</p>
   </section>
 
   <section class="screen" id="s-g2">
@@ -392,7 +392,7 @@ function renderHub(){
     `<div class="slot ${d?"done":(i===next?"next":"")}">${d?"✓":(i===next?(i+1):"—")}</div>`).join("");
   if (next === -1) { go("final"); return; }
   const rules = [
-    "Sonce žge, ti pa hočeš v senco. Senca se premika po zelenici – s puščicami jo lovi in ostani pod njo skupaj 10 s. Imaš 40 s.",
+    "Sonce žge, ti pa hočeš v senco. Senca se premika po zelenici – s puščicami jo lovi in ostani pod njo skupaj 7 s. Imaš 40 s.",
     "5 vprašanj o F1, 4 možnosti. En napačen odgovor = konec.",
     "Startne luči se prižgejo ena za drugo. Ko VSE ugasnejo, takoj pritisni – v 0,25 s. Prezgodaj = jump start.",
     "Avto pripelje v boks. Ko se ustavi, vsako kolo pritisni 3× (FL, FR, RL, RR). Vsa štiri pod 3,2 s. Ne začni, dokler se avto ne ustavi!",
@@ -587,6 +587,7 @@ function startG1(){
   const p = { x:160, y:250, r:11 };
   // hitrost sence: zacetna, koliko pospesi na sekundo in zgornja meja
   const SH_START = 40.3, SH_RAMP = 1.76, SH_MAX = 80;
+  const SH_CILJ = 7;         // koliko sekund moras biti skupaj pod senco
   const sh = { x:80, y:160, r:27, vx:37.6, vy:20.8, t:0, speed:SH_START };
   let timer = 0, elapsed = 0, lastTick = 0, outro = null;
   const grass = Array.from({length:70}, () => [Math.random()*W, 100+Math.random()*(H-110)]);
@@ -655,7 +656,7 @@ function startG1(){
     if (inside && !outro){ timer += dt; if (Math.floor(timer) > lastTick){ lastTick = Math.floor(timer); sfx.tick(); } }
     const left = Math.max(0, 40 - elapsed);
     $("#g1-hud").textContent = timer.toFixed(1) + " s  |  " + Math.ceil(left) + "";
-    if (left <= 0 && timer < 10 && !outro){ loseGame("Zmanjkalo ti je časa. Senca je zmagala."); return; }
+    if (left <= 0 && timer < SH_CILJ && !outro){ loseGame("Zmanjkalo ti je časa. Senca je zmagala."); return; }
     $("#g1-hud").style.color = inside ? "var(--green)" : "var(--gold)";
 
     // risanje
@@ -691,7 +692,7 @@ function startG1(){
     px(ctx,x+5,y+2,4,3,"#111"); px(ctx,x+11,y+2,4,3,"#111"); px(ctx,x+9,y+3,2,1,"#111"); // očala
     if (inside && !moving){ px(ctx,x+8,y+6,4,1,"#7a2020"); }
     // outro: iz tribune priteče možiček in te nadere
-    if (timer >= 10 && !outro){ outro = { x: p.x < 160 ? 40 : 280, y: 92, t: 0, arrived:false, ph:0 }; sh.vx = sh.vy = 0; }
+    if (timer >= SH_CILJ && !outro){ outro = { x: p.x < 160 ? 40 : 280, y: 92, t: 0, arrived:false, ph:0 }; sh.vx = sh.vy = 0; }
     if (outro){
       outro.t += dt;
       if (!outro.arrived){
