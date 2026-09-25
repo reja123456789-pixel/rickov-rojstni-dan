@@ -229,11 +229,21 @@ canvas{width:288px;height:360px;image-rendering:pixelated;image-rendering:crisp-
     <div style="flex:1"></div>
   </section>
 
+  <section class="screen" id="s-retry">
+    <div style="flex:1"></div>
+    <h1 style="color:var(--gold)">ŠE EN POSKUS</h1>
+    <p id="retry-text"></p>
+    <p class="hint">V vsaki igri imaš dva poskusa. Tvoj napredek ostane.</p>
+    <div style="flex:1"></div>
+    <button class="btn" id="retry-btn">POSKUSI ZNOVA</button>
+    <div style="flex:1"></div>
+  </section>
+
   <section class="screen" id="s-lose">
     <div style="flex:1"></div>
     <h1 style="color:var(--red)">KONEC IGRE</h1>
     <p id="lose-text"></p>
-    <p class="hint">Vseh pet iger moraš rešiti v enem poskusu. Začni od začetka.</p>
+    <p class="hint">Oba poskusa sta porabljena. Vseh pet iger moraš rešiti zapored. Začni od začetka.</p>
     <div style="flex:1"></div>
     <button class="btn" id="lose-btn">OD ZAČETKA</button>
     <div style="flex:1"></div>
@@ -365,8 +375,8 @@ $("#music").onclick = () => { if (bgAvailable) setMusic(!musicOn); };
 const autoStart = () => { if (bgAvailable && bg.paused && musicOn) setMusic(true); removeEventListener("pointerdown", autoStart); removeEventListener("keydown", autoStart); };
 addEventListener("pointerdown", autoStart); addEventListener("keydown", autoStart);
 $("#mute").onclick = () => { muted = !muted; $("#mute").textContent = "zvok: " + (muted?"OFF":"ON"); bg.muted = muted; };
-$("#reset").onclick = () => { state.done=[false,false,false,false,false]; save(); fails = 0; $("#troll").classList.remove("show"); go("start"); };
-$("#replay").onclick = () => { state.done=[false,false,false,false,false]; save(); go("start"); };
+$("#reset").onclick = () => { state.done=[false,false,false,false,false]; save(); fails = 0; poskusi = POSKUSI; $("#troll").classList.remove("show"); go("start"); };
+$("#replay").onclick = () => { state.done=[false,false,false,false,false]; save(); poskusi = POSKUSI; go("start"); };
 
 /* ---------- zasloni ---------- */
 let stopGame = null;
@@ -401,11 +411,24 @@ function renderHub(){
   $("#hub-text").textContent = "Naslednja igra: " + names[next];
   $("#hub-rules").textContent = rules[next];
   $("#hub-play").textContent = "IGRAJ " + (next+1);
-  $("#hub-play").onclick = () => { beep(500,.05); go(ORDER[next]); };
+  $("#hub-play").onclick = () => { beep(500,.05); poskusi = POSKUSI; go(ORDER[next]); };
 }
 let fails = 0;
+const POSKUSI = 2;          // koliko poskusov imas v vsaki igri
+let poskusi = POSKUSI;      // koliko jih je se ostalo
+let zadnjaIgra = null;      // katero igro ponoviti
 function loseGame(text){
   if (stopGame) { stopGame(); stopGame = null; }
+  zadnjaIgra = document.querySelector(".screen.active").id.slice(2);
+  poskusi--;
+  // prva zguba v tej igri: se en poskus, napredek ostane
+  if (poskusi > 0 && ORDER.includes(zadnjaIgra)){
+    sfx.bad();
+    $("#retry-text").textContent = text;
+    go("retry");
+    return;
+  }
+  // poskusi porabljeni: nazaj na zacetek
   fails++;
   if (fails === 3){ setTimeout(()=>$("#troll").classList.add("show"), 600); }   // samo ob tretjem porazu
   if (fails % 5 === 0){ state.done=[false,false,false,false,false]; save(); $("#lose-text").textContent = text; showParade(()=>go("lose")); return; }
@@ -413,6 +436,7 @@ function loseGame(text){
   $("#lose-text").textContent = text;
   go("lose");
 }
+$("#retry-btn").onclick = () => { beep(500,.05); go(zadnjaIgra); };
 const tYes = $("#troll-yes"), tBox = $("#troll").querySelector(".box");
 function dodge(e){
   if (e && e.cancelable) e.preventDefault();
@@ -425,9 +449,9 @@ function dodge(e){
 }
 ["mouseover","mouseenter","touchstart","pointerdown","mousedown","click","focus"].forEach(ev => tYes.addEventListener(ev, dodge, {passive:false}));
 $("#troll-no").onclick = () => { $("#troll").classList.remove("show"); sfx.horn(); };
-$("#lose-btn").onclick = () => { beep(500,.05); go(ORDER[0]); };
+$("#lose-btn").onclick = () => { beep(500,.05); poskusi = POSKUSI; go(ORDER[0]); };
 function winGame(i, text){
-  state.done[i] = true; save(); sfx.win();
+  state.done[i] = true; save(); poskusi = POSKUSI; sfx.win();
   $("#win-text").textContent = text;
   go("win"); confetti();
 }
