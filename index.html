@@ -585,7 +585,9 @@ function startG1(){
   document.body.classList.add("game-on");
   const cv = $("#c1"), ctx = cv.getContext("2d"), W=320, H=400;
   const p = { x:160, y:250, r:11 };
-  const sh = { x:80, y:160, r:27, vx:47, vy:26, t:0, speed:50.4 };
+  // hitrost sence: zacetna, koliko pospesi na sekundo in zgornja meja
+  const SH_START = 40.3, SH_RAMP = 1.76, SH_MAX = 80;
+  const sh = { x:80, y:160, r:27, vx:37.6, vy:20.8, t:0, speed:SH_START };
   let timer = 0, elapsed = 0, lastTick = 0, outro = null;
   const grass = Array.from({length:70}, () => [Math.random()*W, 100+Math.random()*(H-110)]);
   // tribuna: 2 vrsti, manj ljudi, bolj detajlni (12px visoki)
@@ -638,7 +640,7 @@ function startG1(){
     sh.t -= dt;
     if (sh.t <= 0){
       const a = Math.random()*Math.PI*2; sh.t = .8+Math.random()*1.0;
-      sh.speed = Math.min(50.4 + elapsed*2.2, 100);
+      sh.speed = Math.min(SH_START + elapsed*SH_RAMP, SH_MAX);
       sh.vx = Math.cos(a)*sh.speed; sh.vy = Math.sin(a)*sh.speed;
     }
     sh.x += sh.vx*dt; sh.y += sh.vy*dt;
